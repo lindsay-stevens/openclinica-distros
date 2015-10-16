@@ -1,0 +1,42 @@
+ocpg:
+  build: ./postgres
+  env_file:
+    - ./docker-envs.env
+  volumes_from:
+    - ocpgfiles
+ocpgfiles:
+  image: busybox
+  volumes:
+    - /var/lib/postgresql/data
+ocweb:
+  build: ./tomcat
+  dockerfile: Dockerfile-web
+  env_file:
+    - ./docker-envs.env
+  links:
+    - ocpg
+  ports:
+    - "8080:8080"
+  volumes_from:
+    - ocwebfiles
+ocws:
+  build: ./tomcat
+  dockerfile: Dockerfile-ws
+  env_file:
+    - ./docker-envs.env
+  links:
+    - ocpg
+  ports:
+    - "8081:8080"
+  volumes_from:
+    - ocwsfiles
+ocwebfiles:
+  image: busybox
+  volumes:
+    - /usr/local/tomcat/logs
+    - /usr/local/tomcat/ocdata
+ocwsfiles:
+  image: busybox
+  volumes:
+    - /usr/local/tomcat/logs
+    - /usr/local/tomcat/ocdata

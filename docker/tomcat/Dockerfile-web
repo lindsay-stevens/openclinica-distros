@@ -1,0 +1,22 @@
+FROM tomcat:7-jre7
+
+MAINTAINER Lindsay Stevens (lindsay.stevens.au@gmail.com)
+
+ENV OC_VERSION="3.7"
+ENV OC_REPO="https://github.com/lindsay-stevens-kirby/openclinica-distros"
+ENV JAVA_OPTS -XX:PermSize=90m -XX:MaxPermSize=180m -Xms256m -Xmx1280m \
+    -XX:+CMSClassUnloadingEnabled -XX:+UseParallelGC
+
+# This can be either OpenClinica or Openclinica-ws
+ENV OC_APP="OpenClinica"
+
+ADD /conf/ docker/
+ADD $OC_REPO/releases/download/v$OC_VERSION/$OC_APP-$OC_VERSION.zip docker/
+
+RUN unzip -qj docker/$OC_APP-$OC_VERSION.zip "*.war" -d docker/ \
+    && rm -rf webapps/* \
+    && unzip -q docker/$OC_APP.war -d webapps/$OC_APP \
+    && cp docker/tomcat/* conf \
+    && chmod +x docker/run.sh
+
+CMD ["sh", "-c", "$CATALINA_HOME/docker/run.sh"]
