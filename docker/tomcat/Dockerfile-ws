@@ -2,12 +2,24 @@ FROM tomcat:7-jre7
 
 MAINTAINER Lindsay Stevens (lindsay.stevens.au@gmail.com)
 
-ENV OC_VERSION="3.7"
+# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
+RUN groupadd -r tomcat && useradd -r -g tomcat tomcat
+
+# grab gosu for easy step-down from root
+RUN gpg --keyserver pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+	&& wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/1.2/gosu-$(dpkg --print-architecture)" \
+	&& wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/1.2/gosu-$(dpkg --print-architecture).asc" \
+	&& gpg --verify /usr/local/bin/gosu.asc \
+	&& rm /usr/local/bin/gosu.asc \
+	&& chmod +x /usr/local/bin/gosu
+
 ENV OC_REPO="https://github.com/lindsay-stevens-kirby/openclinica-distros"
 ENV JAVA_OPTS -XX:PermSize=90m -XX:MaxPermSize=180m -Xms256m -Xmx1280m \
     -XX:+CMSClassUnloadingEnabled -XX:+UseParallelGC
 
 # This can be either OpenClinica or Openclinica-ws
+ENV OC_VERSION="3.7"
 ENV OC_APP="OpenClinica-ws"
 
 ADD /conf/ docker/
@@ -16,7 +28,11 @@ ADD $OC_REPO/releases/download/v$OC_VERSION/$OC_APP-$OC_VERSION.zip docker/
 RUN unzip -qj docker/$OC_APP-$OC_VERSION.zip "*.war" -d docker/ \
     && rm -rf webapps/* \
     && unzip -q docker/$OC_APP.war -d webapps/$OC_APP \
-    && cp docker/tomcat/* conf \
-    && chmod +x docker/run.sh
+    && cp docker/catalina.properties conf \
+    && cp docker/server.xml conf \
+    && chmod +rx docker/docker-entrypoint.sh \
+    && chmod +r docker/*.properties
 
-CMD ["sh", "-c", "$CATALINA_HOME/docker/run.sh"]
+ENTRYPOINT ["/usr/local/tomcat/docker/docker-entrypoint.sh"]
+EXPOSE 8080
+CMD ["catalina.sh", "run"]

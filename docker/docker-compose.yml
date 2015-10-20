@@ -1,3 +1,4 @@
+# hello from vm
 ocpg:
   build: ./postgres
   env_file:

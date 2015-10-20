@@ -22,6 +22,14 @@
   + OpenClinica web interface: http://localhost:8080/OpenClinica
   + OpenClinica soap web service: http://localhost:8081/OpenClinica-ws
 
+### Notes
+- The postgres process(es) runs as the user "postgres" with appropriate access.
+- The tomcat process runs as the user "tomcat" with appropriate access.
+- To get inside a container as root to look around or do backups:
+  ```docker exec -it docker_ocweb_1 bash```
+  + If you want to check processes using ```top``` and it doesn't work, set the 
+    following environment variable first ```export TERM=xterm```.
+    
 
 ### Backups
 - Run pg_dump and save it to the host (can't use $OC_DATABASE here sadly):
@@ -39,6 +47,6 @@
 
 
 ### Doing psql things
-- Check the postgres IPAddress: ```docker inspect docker_ocweb_1 | grep \"IPAddr``
+- Check the postgres IPAddress: ```docker inspect docker_ocweb_1 | grep \"IPAddr```
 - Connect to postgres: ```docker exec -it psql -h youripaddr -U postgres```
   
