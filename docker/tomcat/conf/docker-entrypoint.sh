@@ -20,8 +20,7 @@ if [ "$*" = 'catalina.sh run' ]; then
     # Give ownership of $CATALINA_HOME to tomcat user and allow required access.
     if [ ! -d $OC_CONFIG ]; then
         mkdir -p $OC_CONFIG
-        cp $CATALINA_HOME/docker/datainfo.properties $OC_CONFIG
-        cp $CATALINA_HOME/docker/extract.properties $OC_CONFIG
+        cp $CATALINA_HOME/docker/openclinica/* $OC_CONFIG
         chown -R tomcat:tomcat $CATALINA_HOME
         chmod g+s $CATALINA_HOME
         chmod -R 775 $CATALINA_HOME

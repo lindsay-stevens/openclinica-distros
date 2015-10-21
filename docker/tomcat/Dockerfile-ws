@@ -18,8 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 # Copy conf files and remove default webapps
 ADD /conf/ docker/
 RUN rm -rf webapps/* \
-    && cp docker/catalina.properties conf \
-    && cp docker/server.xml conf \
+    && cp docker/tomcat/* conf/ \
     && chmod +rx docker/docker-entrypoint.sh
 
 ENTRYPOINT ["/usr/local/tomcat/docker/docker-entrypoint.sh"]
@@ -39,4 +38,4 @@ ENV OC_VERSION="3.7"
 ADD $OC_REPO/releases/download/v$OC_VERSION/$OC_APP-$OC_VERSION.zip docker/
 RUN unzip -qj docker/$OC_APP-$OC_VERSION.zip "*.war" -d docker/ \
     && unzip -q docker/$OC_APP.war -d webapps/$OC_APP \
-    && chmod +r docker/*.properties
+    && chmod -R +r docker/openclinica
