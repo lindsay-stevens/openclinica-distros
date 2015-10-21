@@ -5,6 +5,7 @@ All credit goes to https://github.com/adamhadani
 Check all existing Docker containers for their mapped paths, and then purge any
 zombie directories in docker's volumes directory which don't correspond to an
 existing container.
+Script from https://github.com/darthbinamira/dotfiles/blob/1859a36afba2252f86a0a1ff8d5fb442e74b7a0e/tools/docker_clean_vfs.py
 """
 import logging
 import os
