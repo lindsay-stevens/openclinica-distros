@@ -17,16 +17,14 @@ find_replace() {
 
 if [ "$*" = 'catalina.sh run' ]; then
     # Create the config dir if not already there and copy over templates.
-    # Give ownership of $CATALINA_HOME to tomcat user and allow appropriate access.
+    # Give ownership of $CATALINA_HOME to tomcat user and allow required access.
     if [ ! -d $OC_CONFIG ]; then
         mkdir -p $OC_CONFIG
         cp $CATALINA_HOME/docker/datainfo.properties $OC_CONFIG
         cp $CATALINA_HOME/docker/extract.properties $OC_CONFIG
-        chown -R tomcat $CATALINA_HOME
+        chown -R tomcat:tomcat $CATALINA_HOME
         chmod g+s $CATALINA_HOME
-        chmod u+rx $CATALINA_HOME
-        chmod u+rwx $CATALINA_HOME/logs
-        chmod u+rwx $CATALINA_HOME/ocdata
+        chmod -R 775 $CATALINA_HOME
     fi
     
     # These configs come from docker-compose so are unknown during build.
