@@ -122,10 +122,9 @@ background when ```docker-compose up``` is run.
 
 ### Backups
 - Run the ```backup_postgres.sh``` script.
-  + Copies the archives of the database and logs to the host.
-- Run the ```backup_openclinica.sh``` script.
-  + TODO: write this script.
-  + Copies the archives of the ocdata files and logs to the host.
+  + Copies the archives of the database and logs to the host project directory.
+- Run the ```backup_tomcat.sh``` script.
+  + Copies the archives of the ocdata files and logs to the host project directory.
 - Copy the archives to another location for safe keeping.
 
 
