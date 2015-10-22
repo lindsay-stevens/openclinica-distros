@@ -36,8 +36,10 @@ ocwebfiles:
   volumes:
     - /usr/local/tomcat/logs
     - /usr/local/tomcat/ocdata
+    - /usr/local/tomcat/backups
 ocwsfiles:
   image: busybox
   volumes:
     - /usr/local/tomcat/logs
     - /usr/local/tomcat/ocdata
+    - /usr/local/tomcat/backups

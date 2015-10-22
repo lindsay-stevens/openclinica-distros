@@ -44,7 +44,8 @@ There are 2 files for customising Postgres.
 
 Other files included are:
 - ```openclinica.backup``` pg_dump of v3.7 database, so that the migrations can 
-  be skipped. This speeds up startup significantly.
+  be skipped. This speeds up startup significantly. Replace this with a backup 
+  from another existing database to use it as a starting point instead.
 - ```s1_create_oc_user_and_db.sh```: create an openclinica database and user.
 - ```s2_restore_database.sh```: performs a pg_restore using openclinica.backup.
 - ```s3_copy_default_confs.sh```: moves the *.conf files into the postgres 
@@ -120,15 +121,34 @@ background when ```docker-compose up``` is run.
     
 
 ### Backups
+- Run the ```backup_postgres.sh``` script.
+  + Copies the archives of the database and logs to the host.
+- Run the ```backup_openclinica.sh``` script.
+  + TODO: write this script.
+  + Copies the archives of the ocdata files and logs to the host.
+- Copy the archives to another location for safe keeping.
+
+
+### Restores
+- Run the ```restore_postgres.sh``` script.
+  - Specify the target container name.
+  - Specify the target backup file to restore.
+  - pg_restore runs.
+- Run the ```restore_tomcat.sh``` script.
+  - Specify the target container name.
+  - Specify the target backup ocdata folder to restore.
+  - Mount --volumes-from and copy in the folder files.
+
+
+
 - Run pg_dump and save it to the host (can't use $OC_DATABASE here sadly):
-  ```docker exec -it docker_ocpg_1 pg_dump -U postgres \ 
-       --no-privileges --no-tablespaces "openclinica" > openclinica.backup
+  ```docker exec -it docker_ocpg_1 pg_dump -U postgres --no-privileges --no-tablespaces "openclinica" > openclinica.backup```
 
 - TODO: get this part working OK
 - Run tar to get an archive of logs.
   ```docker exec -it docker_ocpg_1 \ 
        "find /var/lib/postgresql/data/pg_log/* -mtime +1 | \
-        xargs tar -czv --verify --remove-files" > pg_log_$(date --iso).log
+        xargs tar -cz --verify --remove-files" > pg_log_$(date --iso).log
 
 - TODO: add backup of tomcat /ocdata and /logs
 - TODO: restore procedure

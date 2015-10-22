@@ -34,7 +34,7 @@ if [ "$*" = 'catalina.sh run' ]; then
     find_replace 'dbPort'   $OCPG_PORT_5432_TCP_PORT
     find_replace 'dbHost'   $OCPG_PORT_5432_TCP_ADDR
     find_replace 'filePath' $CATALINA_HOME/ocdata/
-    find_replace 'log.dir'  $CATALINA_HOME/ocdata/$OC_APP
+    find_replace 'log.dir'  $CATALINA_HOME/logs/$OC_APP
     
     exec gosu tomcat "$@"
 fi
