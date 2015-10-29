@@ -122,18 +122,28 @@ background when ```docker-compose up``` is run.
 
 ### Backups
 - Run the ```backup_postgres.sh``` script.
-  + Copies the archives of the database and logs to the host project directory.
+  + Copies archives of the database and logs to the host project directory.
+    - The pg_dump custom file format is selected, so if SQL or tar is preferred
+      instead then change the "-F c" parameter.
+  + Parameters:
+    - Target container name.
 - Run the ```backup_tomcat.sh``` script.
-  + Copies the archives of the ocdata files and logs to the host project directory.
-- Copy the archives to another location for safe keeping.
+  + Copies archives of the ocdata files and logs to the host project directory.
+  + Parameters:
+    - Target container name.
+- Copy these archives to another location for safe keeping.
 
 
 ### Restores
 - Run the ```restore_postgres.sh``` script.
-  - Specify the target container name.
-  - Specify the target backup file to restore.
-  - pg_restore runs.
+  + Restores a pg_dump backup file into the target container.
+    - The pg_dump custom file format is expected, so if the file is SQL or tar 
+      instead then change the "-F c" parameter.
+  + Parameters:
+    - Target container name.
+    - Target backup file to restore. 
 - Run the ```restore_tomcat.sh``` script.
+  + Restores a 
   - Specify the target container name.
   - Specify the target backup ocdata folder to restore.
   - Mount --volumes-from and copy in the folder files.

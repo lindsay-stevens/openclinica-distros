@@ -14,15 +14,15 @@ cd backups/$1
 # - Create backup archive and tmp directories.
 # - Make sure the tmp directory is clean, and move into it.
 # - Alias the docker postgres password so pg_dump doesn't prompt for it.
-# - Run pg_dump of the openclinica database to a SQL file.
+# - Run pg_dump of the openclinica database to a pg_dump custom file.
 # - Find all log files older than today, and move them into the tmp folder.
 # - Put the tmp files in a tar.gz file.
 # - Clean out the tmp directory.
 docker exec -it $1 bash -c 'mkdir -p $PGDATA/backups; cd $PGDATA/backups; \
     mkdir -p archives tmp; rm -f $PGDATA/backups/tmp/* ; cd tmp; \
     export PGPASSWORD=$POSTGRES_PASSWORD; \
-    pg_dump -U $POSTGRES_USER --no-password --no-privileges --no-tablespaces \
-    -f $OC_DATABASE-$(date --iso).sql $OC_DATABASE; \
+    pg_dump -U $POSTGRES_USER -wx -F c --no-tablespaces \
+    -f $OC_DATABASE-$(date --iso).backup $OC_DATABASE; \
     find $PGDATA/pg_log -type f -daystart -mtime +0 -exec mv {} . \; ;\
     tar cfz $PGDATA/backups/archives/postgres_$(date --iso).tar.gz . ;\
     rm -f $PGDATA/backups/tmp/*'
