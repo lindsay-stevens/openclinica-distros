@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Call this script like: backup_postgres.sh docker_ocweb_1
+# Call this script like: backup_tomcat.sh docker_ocweb_1
 # Where "docker_ocweb_1" is the container name.
 
 # Create a new directory with the same name as the container argument.
@@ -19,7 +19,9 @@ cd backups/$1
 # - Clean out the tmp directory.
 docker exec -it $1 bash -c 'cd $CATALINA_HOME/backups; mkdir -p archives tmp; \
     rm -rf $CATALINA_HOME/backups/tmp/* ; cd tmp; mkdir -p ocdata logs; \
-    cp -R $CATALINA_HOME/ocdata . ;\
+    cp -R $CATALINA_HOME/ocdata . ; \
+    OC_APP_LC="$(tr '[:upper:]' '[:lower:]' <<<"$OC_APP")" ; \
+    cp -R $CATALINA_HOME/$OC_APP_LC.config . ; \
     find $CATALINA_HOME/logs -type f -daystart -mtime +0 -exec mv {} . \; ;\
     tar cfz $CATALINA_HOME/backups/archives/tomcat_$(date --iso).tar.gz . ;\
     rm -rf $CATALINA_HOME/backups/tmp/*'
