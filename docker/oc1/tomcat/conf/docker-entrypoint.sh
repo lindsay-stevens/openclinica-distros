@@ -31,8 +31,8 @@ if [ "$*" = 'catalina.sh run' ]; then
     find_replace 'dbUser'   $OC_USER
     find_replace 'dbPass'   $OC_PASSWORD
     find_replace 'db'       $OC_DATABASE
-    find_replace 'dbPort'   $OCPG_PORT_5432_TCP_PORT
-    find_replace 'dbHost'   $OCPG_PORT_5432_TCP_ADDR
+    find_replace 'dbPort'   $OCPG_PORT
+    find_replace 'dbHost'   $OCPG_HOST
     find_replace 'filePath' $CATALINA_HOME/ocdata/
     find_replace 'log.dir'  $CATALINA_HOME/logs/$OC_APP
     
