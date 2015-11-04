@@ -3,84 +3,87 @@
 
 ## Summary
 - [Introduction](#introduction)
-- [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
-- [Customisation](#customisation)
-- [What Docker-compose does](#what-docker-compose-does)
-- [Connecting to a Container](#connecting-to-a-container)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
 - [Utilities](#utilities)
 - [Notes](#notes)
 
 
 ## Introduction
-This directory is a docker-compose project that provisions docker containers 
-to simplify the setup of an OpenClinica instance. This includes:
-- A postgresql container with an empty OpenClinica database (ocpg).
-- A tomcat container with OpenClinica (ocweb).
-- (Optional) A tomcat container with OpenClinica-ws (ocws).
+This directory is a Docker project intended to simplify the setup of one or 
+more OpenClinica instances. The main components are:
+- ```oc1```: a full OpenClinica instance for managing research data.
+  + OpenClinica 3.7.
+  + OpenClinica-ws 3.7.
+  + Tomcat 7.
+  + OpenJDK 7.
+  + PostgreSQL 8.4.
+- ```httpd```: webserver, for handling HTTPS connections and forwarding requests.
+  + Apache httpd 2.4.
+  
 
-This may be useful for routine setup of OpenClinica instances, or for creating 
-a consistent environment for running tests. 
+## Prerequisites
+Follow the current instructions for installing Docker and Docker-Compose for 
+your OS. This project was developed using Docker 1.9, Docker-Compose 1.5.0, 
+Ubuntu 14.04, with 2vCPUs, 4GB RAM, and 10GB storage.
 
-The major versions currently in the stack are:
-- OpenClinica 3.7.
-- OpenJDK JRE 7.
-- Tomcat 7.
-- PostgreSQL 8.4.
-
-For production deployments, a separate web server container should be created. 
-This server should handle TLS connections, and reverse proxy requests to the 
-OpenClinica instance(s).
-
-TODO: figure this out and add a section about it.
+At the time of writing, the Docker installation instructions include some 
+optional steps for adding your user to the docker group and configuring swap 
+space, both of which are recommended. 
 
 
 ## Getting Started
-- Obtain a 64 bit Linux virtual machine that is compatible with docker.
-- Install docker and docker-compose.
-- Make a copy of this repository for each instance required.
-- Change into the directory where ```docker-compose.yml``` is.
-- Change the passwords contained in ```docker-envs.env```.
-- Run ```docker-compose up```
+This section assumes you're starting from scratch. See later sections on backup 
+and restore for how to migrate an existing OpenClinica instance.
 
-By default, OpenClinica will not be configured to send emails. See below for 
-how to customise the container settings.
-
-The template postgres and tomcat resource settings assume there is about 2GB 
-RAM or more available on the host system. Ideally it has 2vCPUs or more, and 
-disk space of about 10GB or more.
+The Docker-compose 1.5.0 release has experimental support for the Docker 1.9 
+networking features, so the ```up``` commands in this section have the 
+```--x-networking``` flag to enable these features. The new networking features 
+replace container linking.
 
 
-## Prerequisites
-Docker provide a script for installing docker on linux, which is a quick 
-alternative to following the dozen or so manual steps. Either:
-- ```curl -sSL https://get.docker.com/ | sh```
-- ```wget -qO- https://get.docker.com/ | sh```
-
-To install docker-compose, install python3 and pip, then use pip to install:
-- For Ubuntu: ```apt-get install python3-pip```.
-- ```pip3 install docker-compose```.
+### Basic
+If you are trying out OpenClinica, or using it on your local machine only.
+- Make a copy of this repository.
+- In ```./oc1/docker-compose.yml```, uncomment the settings where indicated.
+- From ```./oc1```, run ```docker-compose --x-networking up```.
+  + OpenClinica will be at ```http://127.0.0.1:8080/OpenClinica```.
+  + OpenClinica-ws will be at ```http://127.0.0.1:8081/OpenClinica-ws```.
 
 
-## Customisation
-It is possible to customise the container configurations either before or after 
-building the container images. The first time ```docker-compose up``` is run, 
-the container images will be built if they don't already exist.
+### Advanced
+If you are deploying OpenClinica on the Internet for other people to access.
+- Make a copy of this repository.
+- Update settings as follows.
+  + ```./httpd/conf/httpd.conf```. At about line 90, 4 files required for TLS 
+    are named. Obtain these files and put them under ```httpd/conf/cert```.
+  + ```./oc1/docker-envs.env```. Update the settings as per the instructions. 
+  + ```./oc1/tomcat/conf/openclinica/datainfo.properties```. Add your settings 
+    for email, LDAP and/or any other minor tweaks. Settings with a value of 
+    "replacedbydocker" are overwritten at container startup. 
+- (Optional) update any other settings as required.
+  + All files in ```./oc1/tomcat/conf/``` are added to ```$CATALINA_HOME/conf```.
+  + All "*.conf" files in ```./oc1/postgres/docker-entrypoint-initdb.d``` are 
+    added to ```$PGDATA```, for example if you need to add a ```pg_ident.conf```.
+- From ```./oc1```, run ```docker-compose --x-networking up```.
+- Start the httpd container. 
+  + TODO: elaborate on the required "net" settings so httpd can see oc1.
 
-The pre-build and post-build strategies are described below.
+
+### Duplication
+If you require more than one OpenClinica instance.
+- Follow the Advanced setup so that Apache httpd is configured.
+- Copy the ```oc1``` folder as many times as required.
+  + Update ```docker-envs.env``` with different passwords for each instance.
+- In ```./httpd/conf/httpd-vhosts-apps.conf```, copy the "Location" directives 
+  and update them to point to the copies.
+- From each copy's folder, run ```docker-compose --x-networking up```.
+  + TODO: elaborate on the required "net" settings so httpd can see each oc.
 
 
-### Post-build
-This is useful if trying this deployment method for the first time, or if 
-migrating an existing OpenClinica instance to docker. It involves creating the 
-containers, then running the ```utils/restore``` scripts for postgres and 
-tomcat to replace the template data and configurations.
-
-
-### Pre-Build
-This is useful if deploying the same or similar configuration many times, or if 
-the configuration is unlikely to change. It involves editing the configuration 
-files for each container before building the image.
+## Configuration
+This section describes the configuration templates in more detail.
 
 
 #### Postgres
@@ -119,11 +122,11 @@ The main files for configuration are as follows.
 
 ##### Configuring Tomcat HTTPS
 The current configuration is HTTP only, assuming another local webserver is 
-terminating the TLS connection (e.g. Apache or Nginx). To let Tomcat handle 
-these connections, make the following changes.
+terminating the TLS connection (e.g. Apache). To let Tomcat handle these 
+connections, make the following changes.
 - Add a HTTPS Connector element to ```server.xml``` with the desired settings.
-- Change the exposed port in ```docker-compose.yml``` or the Dockerfiles to 
-  match the Connector's port (probably 443).
+- Change the exposed port in the tomcat/Dockerfiles to match the Connector's 
+  port (probably 443).
 - Include the keystore file in ```tomcat/conf/tomcat``` (same directory as 
   ```server.xml```), so that it is copied into ```$CATALINA_HOME/conf``` during 
   the container image build.
@@ -137,33 +140,6 @@ The main files for configuration are as follows
 - ```extract.properties```: extract processing. This has no customisation 
   from the default and is provided only because OpenClinica expects it to be 
   present during startup.
-
-
-## What Docker-compose does
-There are many guides online but here is a short version of what happens in the 
-background when ```docker-compose up``` is run.
-- Pull required container images from dockerhub (busybox, tomcat, debian).
-- Build the container images for each service (ocweb, ocws, ocpg).
-  - Image names will be prefixed with the folder name, e.g. ```docker_ocweb```
-- Create a data container for each service.
-- Mount the respective data container volume(s) in their service container.
-  - Volumes allow data to be shared between containers, provide a way to keep 
-    data so it's not included in the container image. Files not in a volume 
-    are deleted when a container is deleted.
-- Start each container.
-- After startup, services will be available as follows.
-  + OpenClinica web interface: http://localhost:8080/OpenClinica
-  + OpenClinica soap web service: http://localhost:8081/OpenClinica-ws
-
-
-## Connecting to a Container
-To get inside a container to look around, use the following command:
-```docker exec -it container_name bash```.
-- If you want to check processes using ```top``` and it doesn't work, set
-  ```export TERM=xterm``` after connecting, then re-run top.
-- If you want to use psql in the postgres container, use the following command: 
-  ```docker exec -it container_name gosu postgres psql```. This runs an 
-  interactive terminal with psql running as the container's postgres superuser.
 
 
 ## Utilities
@@ -187,6 +163,7 @@ configuration.
 - ```cleanup_volumes.py```: remove volumes no longer associated with any 
   container. Docker will not automatically remove volumes when a container is 
   removed, on the fair assumption that the volume data is important.
+  + TODO: update with instructions using Docker 1.9 volume management commands
 
 
 ### Backups
@@ -221,6 +198,32 @@ These can be useful for restoring application state.
 
 
 ## Notes
+
+
+### Connecting to a Container
+To get inside a container to look around, use the following command:
+```docker exec -it container_name bash```.
+- If you want to check processes using ```top``` and it doesn't work, set
+  ```export TERM=xterm``` after connecting, then re-run top.
+- If you want to use psql in the postgres container, use the following command: 
+  ```docker exec -it container_name gosu postgres psql```. This runs an 
+  interactive terminal with psql running as the container's postgres superuser.
+
+
+### Startup Times
+On first run, the container images are built. This may take a while as a few 
+hundred MB of base images are downloaded.
+
+On each container creation, the container image is rebuilt, starting at the 
+first "ADD" step, to ensure that the latest files are in the image. This may 
+take a minute or two.
+
+On container startup, Tomcat deploys the OpenClinica applications. This may 
+take about a minute.
+
+On running a restore script, the container data is updated to match the 
+provided data. As long as no configuration is changed, the container can stay 
+up. This may take a few seconds.
 
 
 ### Fixing Storage Issues
