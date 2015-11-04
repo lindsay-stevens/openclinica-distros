@@ -29,18 +29,18 @@ your OS. This project was developed using Docker 1.9, Docker-Compose 1.5.0,
 Ubuntu 14.04, with 2vCPUs, 4GB RAM, and 10GB storage.
 
 At the time of writing, the Docker installation instructions include some 
-optional steps for adding your user to the docker group and configuring swap 
+optional steps for adding your OS user to the docker group and configuring swap 
 space, both of which are recommended. 
 
 
 ## Getting Started
-This section assumes you're starting from scratch. See later sections on backup 
-and restore for how to migrate an existing OpenClinica instance.
+This section assumes you're setting up a new instance. See later sections on 
+backup and restore for how to migrate an existing OpenClinica instance.
 
 The Docker-compose 1.5.0 release has experimental support for the Docker 1.9 
-networking features, so the ```up``` commands in this section have the 
-```--x-networking``` flag to enable these features. The new networking features 
-replace container linking.
+networking features. The ```up``` commands in this section have the 
+```--x-networking``` flag to enable these features, which replace container 
+linking.
 
 
 ### Basic
@@ -58,14 +58,15 @@ If you are deploying OpenClinica on the Internet for other people to access.
 - Update settings as follows.
   + ```./httpd/conf/httpd.conf```. At about line 90, 4 files required for TLS 
     are named. Obtain these files and put them under ```httpd/conf/cert```.
-  + ```./oc1/docker-envs.env```. Update the settings as per the instructions. 
+  + ```./oc1/docker-envs.env```. Update the settings as per the instructions in 
+    the file.
   + ```./oc1/tomcat/conf/openclinica/datainfo.properties```. Add your settings 
     for email, LDAP and/or any other minor tweaks. Settings with a value of 
     "replacedbydocker" are overwritten at container startup. 
 - (Optional) update any other settings as required.
   + All files in ```./oc1/tomcat/conf/``` are added to ```$CATALINA_HOME/conf```.
   + All "*.conf" files in ```./oc1/postgres/docker-entrypoint-initdb.d``` are 
-    added to ```$PGDATA```, for example if you need to add a ```pg_ident.conf```.
+    added to ```$PGDATA```.
 - From ```./oc1```, run ```docker-compose --x-networking up```.
 - Start the httpd container. 
   + TODO: elaborate on the required "net" settings so httpd can see oc1.
@@ -73,13 +74,19 @@ If you are deploying OpenClinica on the Internet for other people to access.
 
 ### Duplication
 If you require more than one OpenClinica instance.
-- Follow the Advanced setup so that Apache httpd is configured.
-- Copy the ```oc1``` folder as many times as required.
-  + Update ```docker-envs.env``` with different passwords for each instance.
-- In ```./httpd/conf/httpd-vhosts-apps.conf```, copy the "Location" directives 
-  and update them to point to the copies.
-- From each copy's folder, run ```docker-compose --x-networking up```.
-  + TODO: elaborate on the required "net" settings so httpd can see each oc.
+- Follow the Advanced setup steps to configure httpd and OpenClinica.
+- Copy the ```oc1``` folder and rename it, e.g. to ```oc2```.
+- Update ```docker-envs.env``` as per the instructions in the file.
+- From ```./oc2```, run ```docker-compose --x-networking up```.
+- Copy ```./httpd/conf/vhosts/default/apps/oc1.conf``` and rename it, e.g. to
+  ```oc2.conf```.
+- Update the above ```oc2.conf``` such that:
+  + The ```Location``` for each app uses a path that is not currently in use 
+    for that virtual host, e.g. ```/OpenClinica2```  and ```/OpenClinica-ws2```.
+  + The ProxyPass and ProxyPassReverse hostnames to match the folder name from 
+    above, e.g. ```oc2_ocweb_1``` and ```oc2_ocws_1```.
+- Restart the httpd container.
+  + TODO: elaborate on the required "net" settings so httpd can see oc2.
 
 
 ## Configuration
@@ -121,15 +128,18 @@ The main files for configuration are as follows.
 
 
 ##### Configuring Tomcat HTTPS
-The current configuration is HTTP only, assuming another local webserver is 
-terminating the TLS connection (e.g. Apache). To let Tomcat handle these 
-connections, make the following changes.
+The current configuration is HTTP only, assuming httpd is handling the HTTPS 
+connections. If the Tomcat instances are on a different machine to httpd, make 
+the following changes to allow Tomcat to handle HTTPS.
 - Add a HTTPS Connector element to ```server.xml``` with the desired settings.
 - Change the exposed port in the tomcat/Dockerfiles to match the Connector's 
   port (probably 443).
 - Include the keystore file in ```tomcat/conf/tomcat``` (same directory as 
   ```server.xml```), so that it is copied into ```$CATALINA_HOME/conf``` during 
   the container image build.
+- Update the ProxyPass and ProxyPassReverse directives in
+  ```./httpd/conf/vhosts/default/apps/oc1.conf``` to https.
+- Restart, rebuild or restore the tomcat services and httpd.
 
 
 #### OpenClinica
