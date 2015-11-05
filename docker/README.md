@@ -47,7 +47,8 @@ linking.
 If you are trying out OpenClinica, or using it on your local machine only.
 - Make a copy of this repository.
 - In ```./oc1/docker-compose.yml```, uncomment the settings where indicated.
-- Create a private network: ```docker network create composenet```.
+- Create a private network with the following command:
+  ```docker network create composenet```.
 - From ```./oc1```, run ```docker-compose --x-networking up```.
   + OpenClinica will be at ```http://127.0.0.1:8080/OpenClinica```.
   + OpenClinica-ws will be at ```http://127.0.0.1:8081/OpenClinica-ws```.
@@ -155,6 +156,7 @@ The main files for configuration are as follows
 
 
 ## Utilities
+TODO: review this section to make sure it works with the latest changes
 The ```utils``` directory contains scripts relating to the following task 
 types, described below:
 - Dev(elopment)
