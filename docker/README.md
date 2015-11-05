@@ -73,7 +73,7 @@ If you are deploying OpenClinica on the Internet for other people to access.
 - From ```./oc1```, run ```docker-compose --x-networking up```.
 - Start the httpd container. 
   + TODO: elaborate on the required "net" settings so httpd can see oc1.
-docker run -it --rm -p 8080:443 -v $(pwd)/conf:/usr/local/apache2/conf --net="composenet" httpd:2.4
+  + docker run -it --rm -p 8080:443 -v $(pwd)/conf:/usr/local/apache2/conf --net="composenet" httpd:2.4
 
 ### Duplication
 If you require more than one OpenClinica instance.
@@ -81,8 +81,8 @@ If you require more than one OpenClinica instance.
 - Copy the ```oc1``` folder and rename it, e.g. to ```oc2```.
 - Update ```docker-envs.env``` as per the instructions in the file.
 - From ```./oc2```, run ```docker-compose --x-networking up```.
-- Copy ```./httpd/conf/vhosts/default/apps/oc1.conf``` and rename it, e.g. to
-  ```oc2.conf```.
+- Copy ```./httpd/conf/vhosts/default/apps/oc1.conf``` and rename it, e.g. 
+  to ```oc2.conf```.
 - Update the above ```oc2.conf``` such that:
   + The ```Location``` for each app uses a path that is not currently in use 
     for that virtual host, e.g. ```/OpenClinica2```  and ```/OpenClinica-ws2```.
