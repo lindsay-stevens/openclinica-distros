@@ -47,6 +47,7 @@ linking.
 If you are trying out OpenClinica, or using it on your local machine only.
 - Make a copy of this repository.
 - In ```./oc1/docker-compose.yml```, uncomment the settings where indicated.
+- Create a private network: ```docker network create composenet```.
 - From ```./oc1```, run ```docker-compose --x-networking up```.
   + OpenClinica will be at ```http://127.0.0.1:8080/OpenClinica```.
   + OpenClinica-ws will be at ```http://127.0.0.1:8081/OpenClinica-ws```.
@@ -67,14 +68,15 @@ If you are deploying OpenClinica on the Internet for other people to access.
   + All files in ```./oc1/tomcat/conf/``` are added to ```$CATALINA_HOME/conf```.
   + All "*.conf" files in ```./oc1/postgres/docker-entrypoint-initdb.d``` are 
     added to ```$PGDATA```.
+- Create a private network: ```docker network create composenet```
 - From ```./oc1```, run ```docker-compose --x-networking up```.
 - Start the httpd container. 
   + TODO: elaborate on the required "net" settings so httpd can see oc1.
-
+docker run -it --rm -p 8080:443 -v $(pwd)/conf:/usr/local/apache2/conf --net="composenet" httpd:2.4
 
 ### Duplication
 If you require more than one OpenClinica instance.
-- Follow the Advanced setup steps to configure httpd and OpenClinica.
+- Follow the Advanced setup steps to configure httpd and oc1.
 - Copy the ```oc1``` folder and rename it, e.g. to ```oc2```.
 - Update ```docker-envs.env``` as per the instructions in the file.
 - From ```./oc2```, run ```docker-compose --x-networking up```.
