@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Instructions.
+ - Maximum 4 <item/> elements are displayed on the login page.
+ - Title: required, can be empty. Never truncated. Plain text only.
+ - Link: optional, can be empty, used for item URL.
+ - Description: required, can be empty, displays max 47 characters.
+   + Any word containing the 47th+ character is truncated.
+   + Can use HTML inside <![CDATA[content]]>, which count as characters.
+ - PubDate: required, cannot be empty, displays as MM/DD.
+
+Item template.
+<item>
+    <title></title>
+    <link></link>
+    <description></description>
+    <pubDate>2015-11-05</pubDate>
+</item>
+-->
+<rss version="2.0">
+    <channel>
+        <item>
+            <title></title>
+            <link></link>
+            <description><![CDATA[<b>Welcome to OpenClinica</b>]]></description>
+            <pubDate>2015-01-01</pubDate>
+        </item>
+    </channel>
+</rss>

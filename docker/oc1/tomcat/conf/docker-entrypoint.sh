@@ -17,10 +17,12 @@ find_replace() {
 
 if [ "$*" = 'catalina.sh run' ]; then
     # Create the config dir if not already there and copy over templates.
+    # Copy the "includes" files into the OpenClinica "/includes" directory.
     # Give ownership of $CATALINA_HOME to tomcat user and allow required access.
     if [ ! -d $OC_CONFIG ]; then
         mkdir -p $OC_CONFIG
         cp $CATALINA_HOME/docker/openclinica/* $OC_CONFIG
+        cp $CATALINA_HOME/docker/includes/* $CATALINA_HOME/webapps/$OC_APP/includes
         chown -R tomcat:tomcat $CATALINA_HOME
         chmod g+s $CATALINA_HOME
         chmod -R 775 $CATALINA_HOME
