@@ -2,6 +2,7 @@
 
 # Postgres
 ocpg:
+  net: "composenet"
   build: ./postgres
   env_file:
     - ./docker-envs.env
@@ -10,6 +11,7 @@ ocpg:
 
 # OpenClinica Webapp
 ocweb:
+  net: "composenet"
   build: ./tomcat
   dockerfile: Dockerfile-web
   env_file:
@@ -22,6 +24,7 @@ ocweb:
 
 # OpenClinica Webservice
 ocws:
+  net: "composenet"
   build: ./tomcat
   dockerfile: Dockerfile-ws
   env_file:
@@ -34,15 +37,18 @@ ocws:
 
 # Data Containers
 ocpgfiles:
+  net: "none"
   image: busybox
   volumes:
     - /var/lib/postgresql/data
 ocwebfiles:
+  net: "none"
   image: busybox
   volumes:
     - /usr/local/tomcat/logs
     - /usr/local/tomcat/ocdata
 ocwsfiles:
+  net: "none"
   image: busybox
   volumes:
     - /usr/local/tomcat/logs
