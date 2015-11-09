@@ -1,0 +1,19 @@
+# OpenClinica Service
+
+# Postgres
+httpd:
+  net: "common"
+  build: ./httpd
+  dockerfile: Dockerfile
+  volumes_from:
+    - httpdfiles
+  ports:
+    - "80:8080"
+    - "443:8443"
+
+# Data Containers
+httpdfiles:
+  net: "none"
+  image: busybox
+  volumes:
+    - /usr/local/apache2/logs

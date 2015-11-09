@@ -2,7 +2,7 @@
 
 # Postgres
 ocpg:
-  net: "composenet"
+  net: "common"
   build: ./postgres
   env_file:
     - ./docker-envs.env
@@ -11,7 +11,7 @@ ocpg:
 
 # OpenClinica Webapp
 ocweb:
-  net: "composenet"
+  net: "common"
   build: ./tomcat
   dockerfile: Dockerfile-web
   env_file:
@@ -24,7 +24,7 @@ ocweb:
 
 # OpenClinica Webservice
 ocws:
-  net: "composenet"
+  net: "common"
   build: ./tomcat
   dockerfile: Dockerfile-ws
   env_file:
