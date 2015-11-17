@@ -37,62 +37,78 @@ space, both of which are recommended.
 This section assumes you're setting up a new instance. See later sections on 
 backup and restore for how to migrate an existing OpenClinica instance.
 
-The Docker-compose 1.5.0 release has experimental support for the Docker 1.9 
-networking features. The ```up``` commands in this section have the 
-```--x-networking``` flag to enable these features, which replace container 
-linking.
+The overall steps to get started are:
+- Make a copy of this repository.
+- Do some configuration.
+- Issue commands to create, start, or stop services.
 
 
-### Basic
+### Configuration
+
+
+#### Testing
 If you are trying out OpenClinica, or using it on your local machine only.
-- Make a copy of this repository.
-- In ```./oc1/docker-compose.yml```, uncomment the settings where indicated.
-- Create a private network with the following command:
-  ```docker network create composenet```.
-- From ```./oc1```, run ```docker-compose --x-networking up```.
-  + OpenClinica will be at ```http://127.0.0.1:8080/OpenClinica```.
-  + OpenClinica-ws will be at ```http://127.0.0.1:8081/OpenClinica-ws```.
+- In ```./httpd/docker-envs.env```, make sure that ```HTTPD_INSECURE=yes```.
 
 
-### Advanced
-If you are deploying OpenClinica on the Internet for other people to access.
-- Make a copy of this repository.
-- Update settings as follows.
+#### Deployment
+If you are deploying OpenClinica on the Internet, and/or for others to access.
+- Required settings.
+  + ```./httpd/docker-envs.env```, make sure that ```HTTPD_INSECURE=no```.
   + ```./httpd/conf/httpd.conf```. At about line 90, 4 files required for TLS 
     are named. Obtain these files and put them under ```httpd/conf/cert```.
-  + ```./oc1/docker-envs.env```. Update the settings as per the instructions in 
-    the file.
+  + ```./oc1/docker-envs.env```. Update as per the instructions in the file.
   + ```./oc1/tomcat/conf/openclinica/datainfo.properties```. Add your settings 
     for email, LDAP and/or any other minor tweaks. Settings with a value of 
     "replacedbydocker" are overwritten at container startup. 
-- (Optional) update any other settings as required.
-  + All files in ```./oc1/tomcat/conf/``` are added to ```$CATALINA_HOME/conf```.
+- Optional settings.
+  + All files in ```./oc1/tomcat/conf/``` are added to the tomcat configuration 
+    directory at ```$CATALINA_HOME/conf```.
   + All "*.conf" files in ```./oc1/postgres/docker-entrypoint-initdb.d``` are 
-    added to ```$PGDATA```.
-- Create a private network: ```docker network create composenet```
-- From ```./oc1```, run ```docker-compose --x-networking up```.
-- Start the httpd container. 
-  + TODO: elaborate on the required "net" settings so httpd can see oc1.
-  + docker run -it --rm -p 8080:443 -v $(pwd)/conf:/usr/local/apache2/conf --net="composenet" httpd:2.4
+    added to the postgres data directory at ```$PGDATA```.
+  + All files in ```./httpd/httpd/conf/``` are added to the httpd configuration 
+    directory at ```/usr/local/apache2/conf```.
 
-### Duplication
-If you require more than one OpenClinica instance.
-- Follow the Advanced setup steps to configure httpd and oc1.
+
+### Commands
+See the ```./compose_all.sh``` file for full details. Useful commands include:
+- ```./compose_all.sh all new```: create and start all service containers.
+  + OpenClinica will be at ```http://localhost/OpenClinica```.
+  + OpenClinica-ws will be at ```http://localhost/OpenClinica-ws```.
+- ```./compose_all.sh all stop```: stop all service containers.
+- ```./compose_all.sh all upd```: start all existing service containers.
+- ```./compose_all.sh oc1 "restart oc1_ocws_1"```: restart OpenClinica-ws only.
+
+
+## Duplication
+
+
+### Configuration
+
+
+#### Testing
+If you require more than one OpenClinica instance. The names used can be 
+changed as desired. The important factors are:
+- The folder name must match the prefix in the httpd Proxy settings.
+- The Location settings must be unique for the virtual host.
+
+Perform the following steps.
 - Copy the ```oc1``` folder and rename it, e.g. to ```oc2```.
-- Update ```docker-envs.env``` as per the instructions in the file.
-- From ```./oc2```, run ```docker-compose --x-networking up```.
-- Copy ```./httpd/conf/vhosts/default/apps/oc1.conf``` and rename it, e.g. 
-  to ```oc2.conf```.
-- Update the above ```oc2.conf``` such that:
-  + The ```Location``` for each app uses a path that is not currently in use 
-    for that virtual host, e.g. ```/OpenClinica2```  and ```/OpenClinica-ws2```.
-  + The ProxyPass and ProxyPassReverse hostnames to match the folder name from 
-    above, e.g. ```oc2_ocweb_1``` and ```oc2_ocws_1```.
-- Restart the httpd container.
-  + TODO: elaborate on the required "net" settings so httpd can see oc2.
+- Copy ```./httpd/conf/vhosts/default/apps/oc1.conf``` as ```oc2.conf```.
+- Update ```oc2.conf```.
+  + Change ```Location``` to ```/OpenClinica2```  and ```/OpenClinica-ws2```.
+  + Change ```LocationMatch``` to ```...(OpenClinica2|OpenClinica-ws2)...```
+  + Change ```ProxyPass``` and ```ProxyPassReverse```:
+    - ```http://oc2_ocweb_1...``` for ```/OpenClinica2```.
+    - ```http://oc2_ocws_1...``` for ```/OpenClinica-ws2```.
+- Start the new instance: ```./compose_all.sh oc2 new```
+- Restart httpd to 
+
+TODO: figure out the process around reloading configuration without wiping logfiles etc.
 
 
-## Configuration
+
+## Configuration Reference
 This section describes the configuration templates in more detail.
 
 
