@@ -5,6 +5,8 @@ httpd:
   net: "common"
   build: ./httpd
   dockerfile: Dockerfile
+  env_file:
+    - ./docker-envs.env
   volumes_from:
     - httpdfiles
   ports:
